@@ -1,4 +1,4 @@
-;;; pivotal-tracker.el --- Interact with Pivotal Tracker through its API
+;;; pivotal-tracker.el --- Interact with Pivotal Tracker through its API -*- lexical-binding: t -*-
 
 ;; Author: John Andrews
 ;; URL: http://github.com/jxa/pivotal-tracker
