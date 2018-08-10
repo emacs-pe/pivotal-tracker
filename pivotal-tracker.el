@@ -7,28 +7,30 @@
 
 ;; This file is not part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation version 2, or any later version.
+;;; License
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation version 2, or any later version.
 
 ;; This program is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; General Public License for more details.
 
-;; For a copy of the GNU General Public License, search the Internet,
-;; or write to the Free Software Foundation, Inc., 59 Temple Place,
-;; Suite 330, Boston, MA 02111-1307 USA
+;; For a copy of the GNU General Public License, search the Internet, or
+;; write to the Free Software Foundation, Inc., 59 Temple Place, Suite
+;; 330, Boston, MA 02111-1307 USA
 
 ;;; Commentary:
 
 ;; Pivotal Tracker Mode provides a mode and functions for interacting
-;; with Pivotal Tracker through its API.
-;; It is designed to give most of the functionality that is important to a developer.
+;; with Pivotal Tracker from Emacs.  It is designed to give most of the
+;; functionality that is important to a developer.
 
 ;; Before using the tracker you must customize your pivotal API key.
-;; You can obtain the key from the 'My Profile' link in the Pivotal Tracker
-;; web application.
+;; You can obtain the key from the 'My Profile' link in the Pivotal
+;; Tracker web application.
 ;; M-x customize-group RET pivotal RET
 
 ;;; Code:
@@ -52,7 +54,7 @@
 (defconst pivotal-base-url "https://www.pivotaltracker.com/services/v3"
   "Format string to use when creating endpoint urls.")
 
-(defconst pivotal-states `("unstarted" "started" "finished" "delivered" "accepted" "rejected")
+(defconst pivotal-states '("unstarted" "started" "finished" "delivered" "accepted" "rejected")
   "Story status will be one of these values.")
 
 (defconst pivotal-current-iteration-number -1)
@@ -74,6 +76,7 @@
         pivotal-api-token)
       (error "You need to generate a personal access token.")))
 
+
 ;;;;;;;; INTERACTIVE USER FUNS
 
 ;;;###autoload
@@ -812,5 +815,4 @@ Put point at the first char of the next story."
           (pivotal-element-value task 'description)))
 
 (provide 'pivotal-tracker)
-
 ;;; pivotal-tracker.el ends here
