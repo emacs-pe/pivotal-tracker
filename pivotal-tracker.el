@@ -7,24 +7,26 @@
 
 ;; This file is not part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation version 2, or any later version.
+;;; License
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation version 2, or any later version.
 
 ;; This program is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; General Public License for more details.
 
-;; For a copy of the GNU General Public License, search the Internet,
-;; or write to the Free Software Foundation, Inc., 59 Temple Place,
-;; Suite 330, Boston, MA 02111-1307 USA
+;; For a copy of the GNU General Public License, search the Internet, or
+;; write to the Free Software Foundation, Inc., 59 Temple Place, Suite
+;; 330, Boston, MA 02111-1307 USA
 
 ;;; Commentary:
 
 ;; Pivotal Tracker Mode provides a mode and functions for interacting
-;; with Pivotal Tracker through its API.
-;; It is designed to give most of the functionality that is important to a developer.
+;; with Pivotal Tracker from Emacs.  It is designed to give most of the
+;; functionality that is important to a developer.
 
 ;; Before using pivotal-tracker.el you must save your pivotal API key
 ;; under ~/.authinfo.gpg. See the README for further instructions.
@@ -51,7 +53,7 @@
 (defconst pivotal-base-url "https://www.pivotaltracker.com/services/v3"
   "Format string to use when creating endpoint urls.")
 
-(defconst pivotal-states `("unstarted" "started" "finished" "delivered" "accepted" "rejected")
+(defconst pivotal-states '("unstarted" "started" "finished" "delivered" "accepted" "rejected")
   "Story status will be one of these values.")
 
 (defconst pivotal-current-iteration-number -1)
@@ -73,7 +75,8 @@
         pivotal-api-token)
       (error "You need to generate a personal access token.")))
 
-;;;;;;;; INTERACTIVE USER FUNS
+
+;;;; INTERACTIVE USER FUNCTIONS
 
 ;;;###autoload
 (defun pivotal ()
@@ -121,7 +124,8 @@ If you try to go before 0 it just reloads current."
   (pivotal-get-iteration *pivotal-iteration*))
 
 (defun pivotal-set-project ()
-  "Set the current project, and load the current iteration for that project."
+  "Set the current project, and load the current iteration for
+that project."
   (interactive)
   (setq *pivotal-current-project* (pivotal-project-id-at-point))
   (setq *pivotal-iteration* pivotal-current-iteration-number)
@@ -135,7 +139,7 @@ If you try to go before 0 it just reloads current."
                'pivotal-story-callback))
 
 (defun pivotal-toggle-visibility ()
-  "Show/hide story detail."
+  "Show/Hide story detail."
   (interactive)
   (progn
     (let ((cur-invisible (member (pivotal-story-at-point) buffer-invisibility-spec)))
@@ -154,7 +158,8 @@ If you try to go before 0 it just reloads current."
              (format "<story><estimate>%s</estimate></story>" estimate)))
 
 (defun pivotal-set-status ()
-  "Transition status according to the current status.  Assigns the story to user."
+  "Transition status according to the current status.  Assigns
+the story to user."
   (interactive)
   (let ((new-state (completing-read "Status: " pivotal-states nil t)))
     (pivotal-api (pivotal-url "projects" *pivotal-current-project* "stories" (pivotal-story-id-at-point))
@@ -225,7 +230,7 @@ If you try to go before 0 it just reloads current."
   (browse-url (pivotal-get-project-url (pivotal-project-id-at-point))))
 
 
-;;;;;;;; CALLBACKS
+;;;; CALLBACKS
 
 (defun pivotal-iteration-callback (status)
   "Pivotal iteration callback handler (accept STATUS from response)."
@@ -307,7 +312,7 @@ If you try to go before 0 it just reloads current."
              (xml-get-children (car xml) 'error)
              " "))
 
-;;;;;;;; MODE DEFINITIONS
+;;;; MODE DEFINITIONS
 
 (defface pivotal-title-face
   '((t :height 1.2 :underline t))
@@ -389,7 +394,7 @@ C-h m  show all keybindings"))
   (define-key pivotal-project-mode-map (kbd "C-m") 'pivotal-set-project))
 
 
-;;;;;;;;; SUPPORTING FUNS
+;;; SUPPORTING FUNS
 
 (defun pivotal-url (&rest parts-of-url)
   "Build a Pivotal API URL from PARTS-OF-URL."
@@ -480,15 +485,15 @@ CALLBACK func to handle request complete/fail"
          (estimate-scale-strs (split-string point-scale-str ",")))
     estimate-scale-strs))
 
-(defvar pivotal-story-name-history '())
+(defvar pivotal-story-name-history ())
 
-(defvar pivotal-story-description-history '())
+(defvar pivotal-story-description-history ())
 
-(defvar pivotal-story-owner-history '())
+(defvar pivotal-story-owner-history ())
 
-(defvar pivotal-story-requester-history '())
+(defvar pivotal-story-requester-history ())
 
-(defvar pivotal-story-estimate-history '())
+(defvar pivotal-story-estimate-history ())
 
 (defun pivotal-project-id-at-point ()
   "Find the Pivotal Tracker project at/after point."
@@ -498,10 +503,9 @@ CALLBACK func to handle request complete/fail"
     (match-string 1)))
 
 (defun pivotal-project-member->member-name-id-association (project-member)
-  "Get the cons (name . id) for PROJECT-MEMBER."
-  `(,(cdr (assoc 'name (assoc 'person project-member)))
-    .
-    ,(cdr (assoc 'id (assoc 'person project-member)))))
+  "Get the CONS (name . id) for PROJECT-MEMBER."
+  (cons (cdr (assoc 'name (assoc 'person project-member)))
+        (cdr (assoc 'id (assoc 'person project-member)))))
 
 (defun pivotal-project->member-name-id-alist (project-id)
   "Get the project member names for PROJECT-ID."
@@ -565,7 +569,8 @@ ESTIMATE the story points estimation."
 	xml))))
 
 (defun pivotal-insert-projects (project-list-xml)
-  "Render projects one per line in their own buffer, from source PROJECT-LIST-XML."
+  "Render projects one per line in their own buffer, from source
+PROJECT-LIST-XML."
   (let ((projects (pivotal-get-project-data project-list-xml)))
     (mapc (lambda (project)
             (insert (format "%7.7s %s\n" (car project) (cadr project))))
@@ -678,8 +683,8 @@ ESTIMATE the story points estimation."
             (re-search-forward "ID:#\\([0-9]\\)")
             (forward-char 3)
             (number-to-string (number-at-point)))
-      (t (beep)
-        (message "%s" "Could not find task at point")))))
+          (t (beep)
+             (message "%s" "Could not find task at point")))))
 
 (defun pivotal-format-story (story)
   "Format the STORY."
@@ -740,9 +745,8 @@ Put point at the first char of the next story."
 
 (defun pivotal-point-has-story-id (point story-id)
   "Does the story at POINT have STORY-ID."
-  (if (and (<= point (point-max)) (>= point (point-min)))
-      (string-equal (get-text-property point 'pivotal-story-id) story-id)
-    nil))
+  (when (and (<= point (point-max)) (>= point (point-min)))
+      (string-equal (get-text-property point 'pivotal-story-id) story-id)))
 
 (defun pivotal-extract-stories-from-iteration-xml (iteration-xml)
   "Extract the story data from ITERATION-XML."
@@ -783,7 +787,7 @@ Put point at the first char of the next story."
 
 (defun pivotal-comments (story)
   "Get comments for the STORY."
-  (let ((notes (pivotal-xml-collection story `(notes note))))
+  (let ((notes (pivotal-xml-collection story '(notes note))))
     (mapconcat #'pivotal-format-comment notes "")))
 
 (defun pivotal-format-comment (note)
@@ -811,5 +815,4 @@ Put point at the first char of the next story."
           (pivotal-element-value task 'description)))
 
 (provide 'pivotal-tracker)
-
 ;;; pivotal-tracker.el ends here
