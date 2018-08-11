@@ -90,7 +90,8 @@
 (defun pivotal-get-projects ()
   "Show a buffer of all projects you have access to."
   (interactive)
-  (pivotal-api (pivotal-url "projects") "GET" 'pivotal-projects-callback))
+  (pivotal-json-api (pivotal-v5-url "projects" "?fields=id,name") "GET" nil
+                    'pivotal-projects-callback))
 
 (defun pivotal-get-current ()
   "Show a buffer of all stories in the currently selected iteration."
@@ -250,12 +251,14 @@ the story to user."
 
 (defun pivotal-projects-callback (status)
   "Pivotal projects callback handler (accept STATUS from response)."
-  (let ((xml (pivotal-get-xml-from-current-buffer)))
+  (let ((json (progn
+                (goto-char url-http-end-of-headers)
+                (json-read))))
     (with-current-buffer (get-buffer-create "*pivotal-projects*")
       (pivotal-project-mode)
       (erase-buffer)
       (switch-to-buffer (current-buffer))
-      (pivotal-insert-projects xml))))
+      (pivotal-insert-projects json))))
 
 (defun pivotal-story-callback (status)
   "Pivotal story callback handler (accept STATUS from response)."
@@ -567,20 +570,20 @@ ESTIMATE the story points estimation."
 	(kill-buffer)
 	xml))))
 
-(defun pivotal-insert-projects (project-list-xml)
+(defun pivotal-insert-projects (project-list-json)
   "Render projects one per line in their own buffer, from source
-PROJECT-LIST-XML."
-  (let ((projects (pivotal-get-project-data project-list-xml)))
+PROJECT-LIST-JSON."
+  (let ((projects (pivotal-get-project-data project-list-json)))
     (mapc (lambda (project)
             (insert (format "%7.7s %s\n" (car project) (cadr project))))
           projects)))
 
-(defun pivotal-get-project-data (project-data-xml)
-  "Return a list of (id name) pairs from PROJECT-DATA-XML."
-  (mapcar (lambda (proj)
-            (list (pivotal-element-value proj 'id)
-                  (pivotal-element-value proj 'name)))
-          (xml-get-children (car project-data-xml) 'project)))
+(defun pivotal-get-project-data (project-data-json)
+  "Return a list of (id name) pairs from PROJECT-DATA-JSON."
+  (mapcar (lambda (project)
+            (list (cdr (assoc 'id project))
+                  (cdr (assoc 'name project))))
+          project-data-json))
 
 (defun pivotal-insert-iteration (iteration-xml)
   "Extract story information from the ITERATION-XML and insert it into current buffer."
