@@ -423,12 +423,6 @@ Optionally provide XML-DATA to send to the API endpoint."
                                      ("Content-Type" . "application/xml"))))
     (url-retrieve url callback)))
 
-(defun pivotal-clear-headers (buffer)
-  "Clear Pivotal headers from the BUFFER."
-  (mail-narrow-to-head)
-  (delete-region (point-min) (point-max))
-  (widen))
-
 (defun pivotal-json-api (url method &optional json-data callback)
   "Access wrapper for the Pivotal (v5) JSON API.
 
@@ -446,20 +440,13 @@ CALLBACK func to handle request complete/fail"
         (url-retrieve url callback)
       (url-retrieve-synchronously url))))
 
-(defun pivotal-get-json-from-current-buffer ()
-  "Get JSON string from the current buffer."
-  (let ((json (condition-case nil
-                  (json-read-from-string (buffer-substring-no-properties (point-min) (point-max)))
-                (error :reissue))))
-    (kill-buffer)
-    json))
-
 (defun pivotal-get-project-members (project-id)
   "Get the project members (by PROJECT-ID)."
   (with-current-buffer (pivotal-json-api (pivotal-v5-url "projects" project-id "memberships")
                                          "GET")
-    (pivotal-clear-headers (current-buffer))
-    (let ((project-members (pivotal-get-json-from-current-buffer)))
+    (let ((project-members (progn
+                             (goto-char url-http-end-of-headers)
+                             (json-read))))
       (if (eq :reissue project-members)
           (pivotal-get-project-members project-id)
         project-members))))
@@ -468,8 +455,9 @@ CALLBACK func to handle request complete/fail"
   "Get the project (by PROJECT-ID)."
   (with-current-buffer (pivotal-json-api (pivotal-v5-url "projects" project-id)
                                          "GET")
-    (pivotal-clear-headers (current-buffer))
-    (let ((project (pivotal-get-json-from-current-buffer)))
+    (let ((project (progn
+                     (goto-char url-http-end-of-headers)
+                     (json-read))))
       (if (eq :reissue project)
           (pivotal-get-project project-id)
         project))))
