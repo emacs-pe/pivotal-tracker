@@ -364,12 +364,13 @@ C-h m  show all keybindings"))
 
 (define-derived-mode pivotal-mode fundamental-mode "Pivotal"
   (suppress-keymap pivotal-mode-map)
-  (define-key pivotal-mode-map (kbd "n") 'next-line)
-  (define-key pivotal-mode-map (kbd "p") 'previous-line)
+  (define-key pivotal-mode-map (kbd "j") 'next-line)
+  (define-key pivotal-mode-map (kbd "k") 'previous-line)
   (define-key pivotal-mode-map (kbd "?") 'pivotal-dispatch-popup)
 
   (define-key pivotal-mode-map (kbd "<tab>") 'pivotal-toggle-visibility)
   (define-key pivotal-mode-map (kbd "g") 'pivotal-get-current)
+  ;; FIXME: Decide between u or l to return the the project list
   (define-key pivotal-mode-map (kbd "^") 'pivotal)
   (define-key pivotal-mode-map (kbd "+") 'pivotal-add-story)
   (define-key pivotal-mode-map (kbd "N") 'pivotal-next-iteration)
@@ -384,10 +385,9 @@ C-h m  show all keybindings"))
 
 (define-derived-mode pivotal-project-mode fundamental-mode "PivotalProjects"
   (suppress-keymap pivotal-project-mode-map)
-  (define-key pivotal-project-mode-map (kbd "R") 'pivotal-get-projects)
-  (define-key pivotal-project-mode-map (kbd "n") 'next-line)
-  (define-key pivotal-project-mode-map (kbd "p") 'previous-line)
-  ;; add some bindings for my vim friends
+  (define-key pivotal-project-mode-map (kbd "g") 'pivotal-get-projects)
+
+  ;; VIM friendly key bindings
   (define-key pivotal-project-mode-map (kbd "j") 'next-line)
   (define-key pivotal-project-mode-map (kbd "k") 'previous-line)
 
