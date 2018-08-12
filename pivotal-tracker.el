@@ -90,7 +90,7 @@
 (defun pivotal-get-projects ()
   "Show a buffer of all projects you have access to."
   (interactive)
-  (pivotal-json-api (pivotal-v5-url "projects" "?fields=id,name") "GET" nil
+  (pivotal-json-api (pivotal-v5-url "projects" "?fields=id,name") "GET"
                     'pivotal-projects-callback))
 
 (defun pivotal-get-current ()
@@ -423,7 +423,7 @@ Optionally provide XML-DATA to send to the API endpoint."
                                      ("Content-Type" . "application/xml"))))
     (url-retrieve url callback)))
 
-(defun pivotal-json-api (url method &optional json-data callback)
+(defun pivotal-json-api (url method &optional callback json-data)
   "Access wrapper for the Pivotal (v5) JSON API.
 
 URL of the API endpoint
@@ -538,6 +538,7 @@ ESTIMATE the story points estimation."
                                               'pivotal-story-estimate-history)))))
   (kill-buffer (pivotal-json-api (pivotal-v5-url "projects" *pivotal-current-project* "stories")
                                  "POST"
+                                 nil
                                  (json-encode (list :name            name
                                                     :description     description
                                                     :owned_by_id     owner-id
