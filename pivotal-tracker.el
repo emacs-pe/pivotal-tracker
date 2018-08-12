@@ -236,18 +236,19 @@ the story to user."
   "Pivotal iteration callback handler (accept STATUS from response)."
   (let ((xml (pivotal-get-xml-from-current-buffer)))
     (with-current-buffer (get-buffer-create "*pivotal-iteration*")
-      (pivotal-mode)
-      (erase-buffer)
-      (switch-to-buffer (current-buffer))
+      (let ((inhibit-read-only t))
+        (pivotal-mode)
+        (erase-buffer)
+        (switch-to-buffer (current-buffer))
 
-      ;; for some reason trying to load an iteration that doesn't
-      ;; exist returns the following xml
-      ;; ((nil-classes ((type . array)))
-      ;;  - Peer has closed the GnuTLS connection
-      ;;  )
-      (if (eq 'nil-classes (first (first xml)))
-          (insert "No stories in this iteration yet")
-        (pivotal-insert-iteration xml)))))
+        ;; for some reason trying to load an iteration that doesn't
+        ;; exist returns the following xml
+        ;; ((nil-classes ((type . array)))
+        ;;  - Peer has closed the GnuTLS connection
+        ;;  )
+        (if (eq 'nil-classes (first (first xml)))
+            (insert "No stories in this iteration yet")
+          (pivotal-insert-iteration xml))))))
 
 (defun pivotal-projects-callback (status)
   "Pivotal projects callback handler (accept STATUS from response)."
@@ -362,38 +363,45 @@ P      previous iteration
 
 C-h m  show all keybindings"))
 
-(define-derived-mode pivotal-mode fundamental-mode "Pivotal"
-  (suppress-keymap pivotal-mode-map)
-  (define-key pivotal-mode-map (kbd "j") 'next-line)
-  (define-key pivotal-mode-map (kbd "k") 'previous-line)
-  (define-key pivotal-mode-map (kbd "?") 'pivotal-dispatch-popup)
+(defvar pivotal-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "j") 'next-line)
+    (define-key map (kbd "k") 'previous-line)
+    (define-key map (kbd "?") 'pivotal-dispatch-popup)
 
-  (define-key pivotal-mode-map (kbd "<tab>") 'pivotal-toggle-visibility)
-  (define-key pivotal-mode-map (kbd "g") 'pivotal-get-current)
-  ;; FIXME: Decide between u or l to return the the project list
-  (define-key pivotal-mode-map (kbd "^") 'pivotal)
-  (define-key pivotal-mode-map (kbd "+") 'pivotal-add-story)
-  (define-key pivotal-mode-map (kbd "N") 'pivotal-next-iteration)
-  (define-key pivotal-mode-map (kbd "P") 'pivotal-previous-iteration)
+    (define-key map (kbd "<tab>") 'pivotal-toggle-visibility)
+    (define-key map (kbd "g") 'pivotal-get-current)
+    ;; FIXME: Decide between u or l to return the the project list
+    (define-key map (kbd "^") 'pivotal)
+    (define-key map (kbd "+") 'pivotal-add-story)
+    (define-key map (kbd "N") 'pivotal-next-iteration)
+    (define-key map (kbd "P") 'pivotal-previous-iteration)
 
-  ;; SubMenus
-  (define-key pivotal-mode-map (kbd "o") 'pivotal-link-popup)
-  (define-key pivotal-mode-map (kbd "s") 'pivotal-story-popup)
+    ;; SubMenus
+    (define-key map (kbd "o") 'pivotal-link-popup)
+    (define-key map (kbd "s") 'pivotal-story-popup)
+    map))
 
+(define-derived-mode pivotal-mode special-mode "Pivotal"
+  "Major mode to display the information of a specific
+project. By default it shows the current iteration."
   (setq font-lock-defaults '(pivotal-font-lock-keywords))
   (font-lock-mode))
 
-(define-derived-mode pivotal-project-mode fundamental-mode "PivotalProjects"
-  (suppress-keymap pivotal-project-mode-map)
-  (define-key pivotal-project-mode-map (kbd "g") 'pivotal-get-projects)
+(defvar pivotal-project-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "g") 'pivotal-get-projects)
+    ;; VIM friendly key bindings
+    (define-key map (kbd "j") 'next-line)
+    (define-key map (kbd "k") 'previous-line)
 
-  ;; VIM friendly key bindings
-  (define-key pivotal-project-mode-map (kbd "j") 'next-line)
-  (define-key pivotal-project-mode-map (kbd "k") 'previous-line)
+    (define-key map (kbd "o") 'pivotal-open-project-at-point-in-browser)
+    (define-key map (kbd ".") 'pivotal-set-project)
+    (define-key map (kbd "C-m") 'pivotal-set-project)
+    map))
 
-  (define-key pivotal-project-mode-map (kbd "o") 'pivotal-open-project-at-point-in-browser)
-  (define-key pivotal-project-mode-map (kbd ".") 'pivotal-set-project)
-  (define-key pivotal-project-mode-map (kbd "C-m") 'pivotal-set-project))
+(define-derived-mode pivotal-project-mode special-mode "Pivotal Project List"
+  "Major mode to display the list of pivotal projects.")
 
 
 ;;; SUPPORTING FUNS
@@ -562,10 +570,11 @@ ESTIMATE the story points estimation."
 (defun pivotal-insert-projects (project-list-json)
   "Render projects one per line in their own buffer, from source
 PROJECT-LIST-JSON."
-  (mapc (lambda (project)
-          (let-alist project
-            (insert (format "%7.7s %s\n" .id .name))))
-        project-list-json))
+  (let ((inhibit-read-only t))
+    (mapc (lambda (project)
+            (let-alist project
+              (insert (format "%7.7s %s\n" .id .name))))
+          project-list-json)))
 
 (defun pivotal-insert-iteration (iteration-xml)
   "Extract story information from the ITERATION-XML and insert it into current buffer."
