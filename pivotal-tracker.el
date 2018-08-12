@@ -562,17 +562,10 @@ ESTIMATE the story points estimation."
 (defun pivotal-insert-projects (project-list-json)
   "Render projects one per line in their own buffer, from source
 PROJECT-LIST-JSON."
-  (let ((projects (pivotal-get-project-data project-list-json)))
-    (mapc (lambda (project)
-            (insert (format "%7.7s %s\n" (car project) (cadr project))))
-          projects)))
-
-(defun pivotal-get-project-data (project-data-json)
-  "Return a list of (id name) pairs from PROJECT-DATA-JSON."
-  (mapcar (lambda (project)
-            (list (cdr (assoc 'id project))
-                  (cdr (assoc 'name project))))
-          project-data-json))
+  (mapc (lambda (project)
+          (let-alist project
+            (insert (format "%7.7s %s\n" .id .name))))
+        project-list-json))
 
 (defun pivotal-insert-iteration (iteration-xml)
   "Extract story information from the ITERATION-XML and insert it into current buffer."
