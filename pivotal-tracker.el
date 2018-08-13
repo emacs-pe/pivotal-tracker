@@ -90,7 +90,7 @@
 (defun pivotal-get-projects ()
   "Show a buffer of all projects you have access to."
   (interactive)
-  (pivotal-json-api (pivotal-v5-url "projects" "?fields=id,name") "GET"
+  (pivotal-json-api (pivotal-v5-url "projects" "?fields=id,name,current_velocity,current_volatility") "GET"
                     'pivotal-projects-callback))
 
 (defun pivotal-get-current ()
@@ -495,10 +495,7 @@ CALLBACK func to handle request complete/fail"
 
 (defun pivotal-project-id-at-point ()
   "Find the Pivotal Tracker project at/after point."
-  (save-excursion
-    (beginning-of-line)
-    (re-search-forward "\\([0-9]+\\)" (point-at-eol))
-    (match-string 1)))
+  (number-to-string (get-text-property (point) 'project-id)))
 
 (defun pivotal-project-member->member-name-id-association (project-member)
   "Get the CONS (name . id) for PROJECT-MEMBER."
@@ -573,7 +570,11 @@ PROJECT-LIST-JSON."
   (let ((inhibit-read-only t))
     (mapc (lambda (project)
             (let-alist project
-              (insert (format "%7.7s %s\n" .id .name))))
+              (let ((row (format "%s velocity: %s volatity: %s%%\n"
+                                 .name .current_velocity .current_volatility)))
+                (put-text-property 0 (length row)
+                                     'project-id .id row)
+                (insert row))))
           project-list-json)))
 
 (defun pivotal-insert-iteration (iteration-xml)
