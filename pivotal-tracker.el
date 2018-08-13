@@ -566,14 +566,17 @@ ESTIMATE the story points estimation."
   "Render projects one per line in their own buffer, from source
 PROJECT-LIST-JSON."
   (let ((inhibit-read-only t))
+    (insert (format "%-50s Velocity Volatility\n" "Project name"))
     (mapc (lambda (project)
             (let-alist project
-              (let ((row (format "%s velocity: %s volatity: %s%%\n"
+              (let ((row (format "%-50s %8s %9s%%\n"
                                  .name .current_velocity .current_volatility)))
                 (put-text-property 0 (length row)
                                      'project-id .id row)
                 (insert row))))
-          project-list-json)))
+          project-list-json)
+    (goto-char (point-min))
+    (forward-line 1)))
 
 (defun pivotal-insert-iteration (iteration-xml)
   "Extract story information from the ITERATION-XML and insert it into current buffer."
