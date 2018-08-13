@@ -123,8 +123,8 @@ If you try to go before 0 it just reloads current."
           (1- *pivotal-iteration*)))
   (pivotal-get-iteration *pivotal-iteration*))
 
-(defun pivotal-set-project ()
-  "Set the current project, and load the current iteration for
+(defun pivotal-open-project ()
+  "Set the current project, and open the current iteration for
 that project."
   (interactive)
   (setq *pivotal-current-project* (pivotal-project-id-at-point))
@@ -396,8 +396,8 @@ project. By default it shows the current iteration."
     (define-key map (kbd "k") 'previous-line)
 
     (define-key map (kbd "o") 'pivotal-open-project-at-point-in-browser)
-    (define-key map (kbd ".") 'pivotal-set-project)
-    (define-key map (kbd "C-m") 'pivotal-set-project)
+    (define-key map (kbd ".") 'pivotal-open-project)
+    (define-key map (kbd "C-m") 'pivotal-open-project)
     map))
 
 (define-derived-mode pivotal-project-mode special-mode "Pivotal Project List"
