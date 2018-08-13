@@ -450,14 +450,15 @@ CALLBACK func to handle request complete/fail"
 
 (defun pivotal-get-project-members (project-id)
   "Get the project members (by PROJECT-ID)."
-  (with-current-buffer (pivotal-json-api (pivotal-v5-url "projects" project-id "memberships")
-                                         "GET")
-    (let ((project-members (progn
-                             (goto-char url-http-end-of-headers)
-                             (json-read))))
-      (if (eq :reissue project-members)
-          (pivotal-get-project-members project-id)
-        project-members))))
+  (let ((response (pivotal-json-api (pivotal-v5-url "projects" project-id
+                                                    "memberships" "?fields=person")
+                                    "GET")))
+    (with-current-buffer response
+      ;; TODO: Error reporting.
+      (goto-char url-http-end-of-headers)
+      (mapcar (lambda (project-membership)
+                (cdr (assoc 'person project-membership)))
+              (json-read)))))
 
 (defun pivotal-get-project (project-id)
   "Get the project (by PROJECT-ID)."
@@ -497,16 +498,13 @@ CALLBACK func to handle request complete/fail"
   "Find the Pivotal Tracker project at/after point."
   (number-to-string (get-text-property (point) 'project-id)))
 
-(defun pivotal-project-member->member-name-id-association (project-member)
-  "Get the CONS (name . id) for PROJECT-MEMBER."
-  (cons (cdr (assoc 'name (assoc 'person project-member)))
-        (cdr (assoc 'id (assoc 'person project-member)))))
-
 (defun pivotal-project->member-name-id-alist (project-id)
   "Get the project member names for PROJECT-ID."
   (let ((project-members (pivotal-get-project-members project-id)))
-    (mapcar 'pivotal-project-member->member-name-id-association
-            (pivotal-get-project-members project-id))))
+    (mapcar (lambda (member)
+              (let-alist member
+                (cons .name .id)))
+            project-members)))
 
 (defun pivotal-add-story (name description owner-id requester-id estimate)
   "Add a story to the current project.
