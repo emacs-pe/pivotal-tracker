@@ -75,6 +75,22 @@
         pivotal-api-token)
       (error "You need to generate a personal access token.")))
 
+(defface pivotal-title-face
+  '((t :height 1.2 :underline t))
+  "Face for iteration heading"
+  :group 'pivotal)
+
+(defface pivotal-section-face
+  '((t :underline t))
+  "Face for iteration heading"
+  :group 'pivotal)
+
+(define-button-type 'project-entry
+  'action 'pivotal-open-project
+  'follow-link nil ; What is this?
+  'project-id nil
+  'help-echo "View the project's current iteration.")
+
 
 ;;;; INTERACTIVE USER FUNCTIONS
 
@@ -123,11 +139,11 @@ If you try to go before 0 it just reloads current."
           (1- *pivotal-iteration*)))
   (pivotal-get-iteration *pivotal-iteration*))
 
-(defun pivotal-open-project ()
+(defun pivotal-open-project (button)
   "Set the current project, and open the current iteration for
 that project."
   (interactive)
-  (setq *pivotal-current-project* (pivotal-project-id-at-point))
+  (setq *pivotal-current-project* (button-get button :project-id))
   (setq *pivotal-iteration* pivotal-current-iteration-number)
   (pivotal-get-current))
 
@@ -317,16 +333,6 @@ the story to user."
 
 ;;;; MODE DEFINITIONS
 
-(defface pivotal-title-face
-  '((t :height 1.2 :underline t))
-  "Face for iteration heading"
-  :group 'pivotal)
-
-(defface pivotal-section-face
-  '((t :underline t))
-  "Face for iteration heading"
-  :group 'pivotal)
-
 (defconst pivotal-font-lock-keywords
   `(("^\\(\\[.*?\\]\\)+" 0 font-lock-doc-face)
     ("^-.*-$" . 'pivotal-title-face)
@@ -392,12 +398,14 @@ project. By default it shows the current iteration."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "g") 'pivotal-get-projects)
     ;; VIM friendly key bindings
-    (define-key map (kbd "j") 'next-line)
-    (define-key map (kbd "k") 'previous-line)
+    (define-key map (kbd "j") (lambda ()
+                                (interactive)
+                                (forward-button 1 t)))
+    (define-key map (kbd "k") (lambda ()
+                                (interactive)
+                                (backward-button 1 t)))
 
     (define-key map (kbd "o") 'pivotal-open-project-at-point-in-browser)
-    (define-key map (kbd ".") 'pivotal-open-project)
-    (define-key map (kbd "C-m") 'pivotal-open-project)
     map))
 
 (define-derived-mode pivotal-project-mode special-mode "Pivotal Project List"
@@ -571,9 +579,7 @@ PROJECT-LIST-JSON."
             (let-alist project
               (let ((row (format "%-50s %8s %9s%%\n"
                                  .name .current_velocity .current_volatility)))
-                (put-text-property 0 (length row)
-                                     'project-id .id row)
-                (insert row))))
+                (insert-text-button row :type 'project-entry :project-id (number-to-string .id)))))
           project-list-json)
     (goto-char (point-min))
     (forward-line 1)))
