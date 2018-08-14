@@ -394,16 +394,21 @@ project. By default it shows the current iteration."
   (setq font-lock-defaults '(pivotal-font-lock-keywords))
   (font-lock-mode))
 
+(defun pivotal-forward-project-entry ()
+  (interactive)
+  (forward-button 1 t))
+
+(defun pivotal-backward-project-entry ()
+  (interactive)
+  (backward-button 1 t))
+
 (defvar pivotal-project-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "g") 'pivotal-get-projects)
-    ;; VIM friendly key bindings
-    (define-key map (kbd "j") (lambda ()
-                                (interactive)
-                                (forward-button 1 t)))
-    (define-key map (kbd "k") (lambda ()
-                                (interactive)
-                                (backward-button 1 t)))
+    (define-key map (kbd "C-n") 'pivotal-forward-project-entry)
+    (define-key map (kbd "C-p") 'pivotal-backward-project-entry)
+    (define-key map (kbd "j") 'pivotal-forward-project-entry)
+    (define-key map (kbd "k") 'pivotal-backward-project-entry)
 
     (define-key map (kbd "o") 'pivotal-open-project-at-point-in-browser)
     map))
