@@ -573,16 +573,20 @@ ESTIMATE the story points estimation."
 (defun pivotal-insert-projects (project-list-json)
   "Render projects one per line in their own buffer, from source
 PROJECT-LIST-JSON."
-  (let ((inhibit-read-only t))
-    (insert (format "%-50s Velocity Volatility\n" "Project name"))
-    (mapc (lambda (project)
+  (let ((inhibit-read-only t)
+        (header (format "%-50s Velocity Volatility" "Project name")))
+    (insert header) ; TODO: Figure out how to make text unreachable
+    (mapcar (lambda (project)
             (let-alist project
-              (let ((row (format "%-50s %8s %9s%%\n"
-                                 .name .current_velocity .current_volatility)))
-                (insert-text-button row :type 'project-entry :project-id (number-to-string .id)))))
-          project-list-json)
-    (goto-char (point-min))
-    (forward-line 1)))
+              (let ((project-name (format "%-50s" .name))
+                    (rest (format "%9s%10s%%"
+                                  .current_velocity .current_volatility)))
+                (insert "\n")
+                (insert-text-button project-name :type 'project-entry :project-id (number-to-string .id))
+                (insert rest))))
+            project-list-json))
+  (goto-char (point-min))
+  (forward-line 1))
 
 (defun pivotal-insert-iteration (iteration-xml)
   "Extract story information from the ITERATION-XML and insert it into current buffer."
