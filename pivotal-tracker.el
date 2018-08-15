@@ -106,7 +106,8 @@
 (defun pivotal-get-projects ()
   "Show a buffer of all projects you have access to."
   (interactive)
-  (pivotal-json-api (pivotal-v5-url "projects" "?fields=id,name,current_velocity,current_volatility") "GET"
+  (pivotal-json-api (pivotal-v5-url "projects" "?fields=id,name,current_velocity,current_volatility,current_iteration_number")
+                    "GET"
                     'pivotal-projects-callback))
 
 (defun pivotal-get-current ()
@@ -587,7 +588,9 @@ PROJECT-LIST-JSON."
                     (rest (format "%9s%10s%%"
                                   .current_velocity .current_volatility)))
                 (insert "\n")
-                (insert-text-button project-name :type 'project-entry :project-id (number-to-string .id))
+                (insert-text-button project-name :type 'project-entry
+                                                 :project-id (number-to-string .id)
+                                                 :iteration (number-to-string .current_iteration_number))
                 (insert rest))))
             project-list-json))
   (goto-char (point-min))
