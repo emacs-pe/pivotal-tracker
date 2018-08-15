@@ -2,7 +2,7 @@
 
 (defvar pivotal-projects-test-data)
 
-(pivotal-json-api (pivotal-v5-url "projects" "?fields=id,name,current_velocity,current_volatility") "GET"
+(pivotal-json-api (pivotal-v5-url "projects" "?fields=id,name,current_velocity,current_volatility,current_iteration_number") "GET"
                   (lambda (status)
                     (let ((json (progn
                                   (goto-char url-http-end-of-headers)
@@ -15,7 +15,9 @@
     (pivotal-project-mode)
     (erase-buffer)
     ;; (switch-to-buffer (current-buffer))
-    (pivotal-insert-projects pivotal-projects-test-data)))
+    (pivotal-insert-projects pivotal-projects-test-data)
+    (goto-char (point-min))
+    (pivotal-forward-project-entry)))
 
 
 (defvar pivotal-iterations-test-data)
