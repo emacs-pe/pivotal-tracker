@@ -276,7 +276,9 @@ the story to user."
       (pivotal-project-mode)
       (erase-buffer)
       (switch-to-buffer (current-buffer))
-      (pivotal-insert-projects json))))
+      (pivotal-insert-projects json)
+      (goto-char (point-min))
+      (pivotal-forward-project-entry))))
 
 (defun pivotal-story-callback (status)
   "Pivotal story callback handler (accept STATUS from response)."
@@ -592,9 +594,7 @@ PROJECT-LIST-JSON."
                                                  :project-id (number-to-string .id)
                                                  :iteration (number-to-string .current_iteration_number))
                 (insert rest))))
-            project-list-json))
-  (goto-char (point-min))
-  (forward-line 1))
+            project-list-json)))
 
 (defun pivotal-insert-iteration (iteration-xml)
   "Extract story information from the ITERATION-XML and insert it into current buffer."
