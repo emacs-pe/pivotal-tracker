@@ -92,6 +92,12 @@
   'help-echo "View the project's current iteration.")
 
 
+;;; Utils
+
+(defsubst assocdr (key list &optional testfn)
+  (cdr (assoc key list testfn)))
+
+
 ;;;; INTERACTIVE USER FUNCTIONS
 
 ;;;###autoload
@@ -188,13 +194,13 @@ the story to user."
   "Set owner (NEW-OWNER-ID) for the current story."
   (interactive
    (let ((member-name-id-alist (pivotal-project->member-name-id-alist *pivotal-current-project*)))
-     (list (cdr (assoc (completing-read "New owner: "
-                                        member-name-id-alist
-                                        nil
-                                        t
-                                        nil
-                                        'pivotal-story-owner-history)
-                       member-name-id-alist)))))
+     (list (assocdr (completing-read "New owner: "
+                                     member-name-id-alist
+                                     nil
+                                     t
+                                     nil
+                                     'pivotal-story-owner-history)
+                    member-name-id-alist))))
   (pivotal-api (pivotal-url "projects" *pivotal-current-project* "stories" (pivotal-story-id-at-point))
          "PUT"
          'pivotal-update-current-story
@@ -473,7 +479,7 @@ CALLBACK func to handle request complete/fail"
       ;; TODO: Error reporting.
       (goto-char url-http-end-of-headers)
       (mapcar (lambda (project-membership)
-                (cdr (assoc 'person project-membership)))
+                (assocdr 'person project-membership))
               (json-read)))))
 
 (defun pivotal-get-project (project-id)
@@ -496,7 +502,7 @@ CALLBACK func to handle request complete/fail"
 (defun pivotal-get-estimate-scale (project-id)
   "Get the project estimation scale (by PROJECT-ID)."
   (let* ((project             (pivotal-get-project project-id))
-         (point-scale-str     (cdr (assoc 'point_scale project)))
+         (point-scale-str     (assocdr 'point_scale project))
          (estimate-scale-strs (split-string point-scale-str ",")))
     estimate-scale-strs))
 
@@ -535,20 +541,20 @@ ESTIMATE the story points estimation."
          (estimate-scale       (pivotal-get-estimate-scale *pivotal-current-project*)))
      (list (read-string "Name: " nil 'pivotal-story-name-history)
            (read-string "Description: " nil 'pivotal-story-description-history)
-           (cdr (assoc (completing-read "Owner: "
-                                        member-name-id-alist
-                                        nil
-                                        t
-                                        nil
-                                        'pivotal-story-owner-history)
-                       member-name-id-alist))
-           (cdr (assoc (completing-read "Requester: "
-                                        member-name-id-alist
-                                        nil
-                                        t
-                                        nil
-                                        'pivotal-story-requester-history)
-                       member-name-id-alist))
+           (assocdr (completing-read "Owner: "
+                                     member-name-id-alist
+                                     nil
+                                     t
+                                     nil
+                                     'pivotal-story-owner-history)
+                    member-name-id-alist)
+           (assocdr (completing-read "Requester: "
+                                     member-name-id-alist
+                                     nil
+                                     t
+                                     nil
+                                     'pivotal-story-requester-history)
+                    member-name-id-alist)
            (string-to-number (completing-read "Estimate: "
                                               estimate-scale
                                               nil
