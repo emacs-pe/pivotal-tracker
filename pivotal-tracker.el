@@ -132,9 +132,9 @@
 (defun pivotal-get-iteration (iteration)
   "Get the current project ITERATION."
   (let ((query-string (if (= pivotal-current-iteration-number iteration)
-                          "iterations/current"
-                        (format "iterations/backlog?offset=%s&limit=1" iteration))))
-    (pivotal-api (pivotal-url "projects" *pivotal-current-project* query-string)
+                          "?scope=current"
+                        (format "?offset=%s&limit=1" iteration))))
+    (pivotal-json-api (pivotal-url "projects" *pivotal-current-project* "iterations" query-string)
                  "GET"
                  'pivotal-iteration-callback)))
 
