@@ -288,11 +288,12 @@ the story to user."
                 (json-read))))
     (with-current-buffer (get-buffer-create "*pivotal-projects*")
       (pivotal-project-mode)
-      (erase-buffer)
-      (switch-to-buffer (current-buffer))
-      (pivotal-insert-projects json)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (pivotal-insert-projects json))
       (goto-char (point-min))
-      (pivotal-forward-project-entry))))
+      (pivotal-forward-project-entry)
+      (switch-to-buffer (current-buffer)))))
 
 (defun pivotal-story-callback (status)
   "Pivotal story callback handler (accept STATUS from response)."
@@ -588,8 +589,7 @@ ESTIMATE the story points estimation."
 (defun pivotal-insert-projects (project-list-json)
   "Render projects one per line in their own buffer, from source
 PROJECT-LIST-JSON."
-  (let ((inhibit-read-only t)
-        (header (format "%-50s Velocity Volatility" "Project name")))
+  (let ((header (format "%-50s Velocity Volatility" "Project name")))
     (insert header) ; TODO: Figure out how to make text unreachable
     (mapcar (lambda (project)
             (let-alist project
