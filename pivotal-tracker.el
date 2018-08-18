@@ -85,10 +85,16 @@
   "Face for iteration heading"
   :group 'pivotal)
 
+(defvar project-entry-button-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "i") 'pivotal-list-project-iterations)
+    map))
+
 (define-button-type 'project-entry
   'action 'pivotal-open-project
   'follow-link nil ; What is this?
   'project-id nil
+  'keymap project-entry-button-map
   'help-echo "View the project's current iteration.")
 
 
@@ -123,6 +129,49 @@
 (defun pivotal-backward-project-entry ()
   (interactive)
   (backward-button 1 t))
+
+(defun pivotal-insert-iterations (iterations)
+  ;; What do we have to show?
+  ;; Iteration number (property)
+  ;; Project-name for header
+  ;; Project-id (proprety)
+  ;; Start period
+  ;; End Period
+  ;; Points?
+  ;; # Stories?
+  ;; Team strength (it is a floating point, present it as a %)
+  (let ((header "From Until Points Strength # of Stories"))
+    (insert header)
+    (insert
+     (mapconcat 'pivotal-insert-iteration-entry
+                iterations
+                "\n")))
+  (message iterations)
+    )
+
+(defun pivotal-list-project-iterations-callback (status)
+  (let ((json (progn
+                (goto-char url-http-end-of-headers)
+                (json-read))))
+    ;; TODO: Include the project name in the buffer name.
+    (with-current-buffer (get-buffer-create "pivotal-iterations*")
+      (pivotal-iteration-list-mode) ;; Check major-mode first?
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (pivotal-insert-iterations (reverse json)))
+      (goto-char (point-min))
+      (forward-line 1)
+      (switch-to-buffer (current-buffer)))))
+
+(defun pivotal-list-project-iterations ()
+  (interactive)
+  (let* ((button (button-at (point)))
+         (project-id (button-get button :project-id)))
+    ;; Iterations are returned oldest first. So when before inserting we need
+    ;; to do from the end of the vector to the first.
+    (pivotal-json-api (pivotal-v5-url "projects" project-id "iterations" "?fields=number,project_id,team_strength,start,finish,points,kind")
+                      "GET"
+                      'pivotal-list-project-iterations-callback)))
 
 (defun pivotal-get-current ()
   "Show a buffer of all stories in the currently selected iteration."
@@ -412,7 +461,6 @@ project. By default it shows the current iteration."
   (setq font-lock-defaults '(pivotal-font-lock-keywords))
   (font-lock-mode))
 
-
 (defvar pivotal-project-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "g") 'pivotal-get-projects)
@@ -426,6 +474,9 @@ project. By default it shows the current iteration."
 
 (define-derived-mode pivotal-project-mode special-mode "Pivotal Project List"
   "Major mode to display the list of pivotal projects.")
+
+(define-derived-mode pivotal-iteration-list-mode special-mode "Pivotal Iteration List"
+  "Display all the iterations associated with the current Project")
 
 
 ;;; SUPPORTING FUNS
