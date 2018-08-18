@@ -116,6 +116,14 @@
                     "GET"
                     'pivotal-projects-callback))
 
+(defun pivotal-forward-project-entry ()
+  (interactive)
+  (forward-button 1 t))
+
+(defun pivotal-backward-project-entry ()
+  (interactive)
+  (backward-button 1 t))
+
 (defun pivotal-get-current ()
   "Show a buffer of all stories in the currently selected iteration."
   (interactive)
@@ -403,13 +411,6 @@ project. By default it shows the current iteration."
   (setq font-lock-defaults '(pivotal-font-lock-keywords))
   (font-lock-mode))
 
-(defun pivotal-forward-project-entry ()
-  (interactive)
-  (forward-button 1 t))
-
-(defun pivotal-backward-project-entry ()
-  (interactive)
-  (backward-button 1 t))
 
 (defvar pivotal-project-mode-map
   (let ((map (make-sparse-keymap)))
